@@ -1,0 +1,76 @@
+version: '3.0'
+
+services:
+  api:
+    image: node:16.3.0
+    command: npm run start:dev
+    depends_on:
+      - elasticsearch
+      - kibana
+      - postgres
+    links:
+      - postgres
+    ports:
+      - 3000:3000
+    volumes:
+      - ./:/app
+    working_dir: /app
+
+    environment:
+      - DB_HOST=postgresql
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=todo_list
+      - DATABASE_URL=postgresql://postgres:docker@postgres:5432/todo_list?schema=public
+    networks:
+      - es-net
+
+  postgres:
+    image: postgres:alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=todo_list
+    ports:
+      - 5432:5432
+    networks:
+      - es-net
+    volumes:
+      - pgdata:/data/postgres
+
+  elasticsearch:
+    container_name: es-container
+    restart: always
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
+    environment:
+      - xpack.security.enabled=false
+      - 'discovery.type=single-node'
+    volumes:
+      - elastic-search-data-volume:/usr/share/elasticsearch/data
+    networks:
+      - es-net
+    ports:
+      - 9200:9200
+  kibana:
+    container_name: kb-container
+    restart: always
+    image: docker.elastic.co/kibana/kibana:7.11.0
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es-container:9200
+    networks:
+      - es-net
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601
+
+volumes:
+  elastic-search-data-volume:
+    driver: local
+  pgdata:
+    driver: local
+
+networks:
+  es-net:
+    driver: bridge
