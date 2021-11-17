@@ -13,14 +13,18 @@ export class RecipesService {
     title,
     description,
   }: NewRecipeInput): Promise<Recipe> {
-    const recipe = await this.prisma.recipe.create({
-      data: {
-        title,
-        description,
-        ingredients,
-      },
-    });
-    return recipe;
+    try {
+      const recipe = await this.prisma.recipe.create({
+        data: {
+          title,
+          description,
+          ingredients,
+        },
+      });
+      return recipe;
+    } catch (e) {
+      console.log(e.message);
+    }
   }
 
   async findOneById(id: string): Promise<Recipe> {
