@@ -19,6 +19,7 @@ export class RecipesService {
           title,
           description,
           ingredients,
+          userId: 'ckw314w3100070vlub5h0c6fz',
         },
       });
       return recipe;
